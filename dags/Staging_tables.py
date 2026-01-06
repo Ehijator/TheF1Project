@@ -17,7 +17,15 @@ def StagingTables():
     create_tabs = SQLExecuteQueryOperator(
         task_id = 'create_staging_tables',
         conn_id = 'postgres_localhost',
+        database = 'postgres',
         sql = 'Sql/Staging_table_create.sql'
             )
 
-StagingTables()
+def Maintables():
+    create_tabs = SQLExecuteQueryOperator(
+        task_id = 'create_main_tables',
+        conn_id = 'postgres_localhost',
+        database = 'F1_Prod',
+        sql = 'Sql/Main_table_create.sql'
+    )
+StagingTables() >> Maintables()
