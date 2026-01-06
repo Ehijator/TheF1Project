@@ -1,0 +1,15 @@
+# IDE/editor files
+.vscode/
+
+# Python cache
+**/__pycache__/
+
+#env
+.env
+.env.*
+#airflow logs
+logs/
+.airflow/
+.idea/
+.DS_Store
+*.pyc
