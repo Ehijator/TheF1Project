@@ -1,6 +1,4 @@
-
-<img width="1280" height="320" alt="pngfind com-formula-1-png-3592497" src="https://github.com/user-attachments/assets/6fef5400-b659-45a0-a65e-4da67479147f" />
-
 # F1 Analytics Data Pipeline (Airflow, Postgres & Python)
+<img width="1078" height="774" alt="Screenshot 2026-01-07 184121" src="https://github.com/user-attachments/assets/a509d8ba-7f6e-4d64-971e-4cb11d4348aa" />
 
 TBD
