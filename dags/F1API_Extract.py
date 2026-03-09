@@ -2,7 +2,7 @@ from airflow.sdk import dag, task, BaseOperator
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-import datetime
+from datetime import datetime
 
 ## will refactor into a custom operator
 
@@ -15,14 +15,17 @@ import datetime
 
 ## Returns dataframes from selected api endpoints
 
-def F1Data(start_date,end_date):
+def F1Data():
     import requests 
     import pandas as pd
-    import airflow
+    from sqlalchemy import create_engine
     import time
+    
     url = 'https://api.openf1.org/v1/' 
+    start_date = '2025-01-01'
+    end_date = '2025-12-31'
 
-    @task() # possible url keys = [sessions]
+    #@task() # possible url keys = [sessions]
     def DateStartToDateEndFilter(url_key:str='sessions'):
         url_tag = url_key + '?'
         date = url + url_tag + 'date_start' + '>=' + start_date + '&' + 'date_end' + '<=' + end_date 
@@ -64,18 +67,18 @@ def F1Data(start_date,end_date):
         df = pd.json_normalize(json)
         return df
     
-    
-    DateStartToDateEndFilter('sessions').to_csv('CSVs/sessions.csv',mode='w+')
-    
-    pghook = PostgresHook(postgres_conn_id='postgres_localhost')
-    conn = pghook.getconn()
-    cur = conn.cursor()
-    with open('CSVs/sessions.csv', 'r') as file:
-        cur.copy_expert(
-            "COPY postgres FROM STDIN WITH CSV HEADER DELIMITER AS ',' QUOTE '\"'",
-            file,
-        )
-    conn.commit()
+    @task
+    def load():
+        import os
+        user = os.getenv("DB_USER")
+        password = 'airflow'#os.getenv("DB_PASS")
+        host = 'host.docker.internal'#os.getenv("DB_HOST")
+        database = 'postgres'#os.getenv("DB_NAME")
+
+        engine = create_engine(f"postgresql://{user}:{password}@{host}/{database}")
+        DateStartToDateEndFilter('sessions').to_sql(name='sessions',con=engine,if_exists='append',index_label='id')
+
+    load()
     # time.sleep(2)
     # print(DateFilter('race_control'))
     # time.sleep(2)
@@ -93,7 +96,7 @@ def F1Data(start_date,end_date):
     # time.sleep(2)
     # print(SessionKeyLoop('stints'))
 
-F1Data('2025-01-01','2025-12-31')
+F1Data()
 #date.DateStartToDateEndFilter('sessions').to_sql() > time.sleep(1) > date.DateFilter('race_control')> time.sleep(1) > date.DateFilter('overtakes')> time.sleep(1)> date.DateFilter('position')> time.sleep(1)> date.DateFilter('weather')> time.sleep(1)> date.SessionKeyLoop('session_result')> time.sleep(1)> date.SessionKeyLoop('pit')> time.sleep(1)> date.SessionKeyLoop('drivers')> time.sleep(1)> date.SessionKeyLoop('stints')> time.sleep(1)> date.DateStartToDateStart('laps')
   
 
